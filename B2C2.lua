@@ -1429,14 +1429,33 @@ local function notify(title, text, duration)
     })
 end
 
-createCustomButton("Section 1", "Skip Statue", "Teleport to Trigger Door", function()
-    local character = localPlayer.Character
+createCustomButton("Section 1", "Skip Statue", "Walk/Move to trigger parts safely", function()
+    local player = game:GetService("Players").LocalPlayer
+    local character = player.Character
     local rootPart = character and character:FindFirstChild("HumanoidRootPart")
-    if rootPart then
-        rootPart.CFrame = CFrame.new(-539.382, 84.881, -88.505)
+    local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+    
+    if rootPart and humanoid then
+        notify("Anti Cheat", "Lumalakad papunta sa target para madagihan ang triggers...", 3)
+        
+        local targetPosition = Vector3.new(-539.382, 84.881, -88.505)
+        
+        -- Gamitin ang Humanoid:MoveTo para pisikal na lakarin ng laro 
+        -- kaya madadagihan niya ang lahat ng transparent touch parts sa daan.
+        humanoid:MoveTo(targetPosition)
+        
+        -- O kaya kung gusto mo mas mabilis pero nadadagihan pa rin:
+        -- Pwede nating i-adjust ang WalkSpeed sandali kung masyadong mabagal
+        local oldSpeed = humanoid.WalkSpeed
+        humanoid.WalkSpeed = 30 -- Pwede mong taasan nang konti para mas mabilis
+        
+        humanoid.MoveToFinished:Wait()
+        
+        humanoid.WalkSpeed = oldSpeed
+    else
+        notify("Error", "Hindi makita ang Character/Humanoid!", 3)
     end
 end)
-
 
 
 createCustomButton("Section 1", "Skip Crouch", "Teleport to Trigger Door", function()
