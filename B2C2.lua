@@ -1429,45 +1429,37 @@ local function notify(title, text, duration)
     })
 end
 
+createCustomButton("Section 1", "Skip Statue", "Teleport to Trigger Door", function()
+    local character = localPlayer.Character
+    local rootPart = character and character:FindFirstChild("HumanoidRootPart")
+    if rootPart then
+        rootPart.CFrame = CFrame.new(-539.382, 84.881, -88.505)
+    end
+end)
 
 
--- ====================================================================
--- Auto-Find TeleportDoor Button (Kahit magbago ang 0x ID, gagana pa rin)
--- ====================================================================
-createCustomButton("Section 1", "Skip Statue", "Teleport to End Section 1", function()
-    local player = game:GetService("Players").LocalPlayer
-    local character = player.Character
+
+createCustomButton("Section 1", "Skip Crouch", "Teleport to Trigger Door", function()
+    local character = localPlayer.Character
     local rootPart = character and character:FindFirstChild("HumanoidRootPart")
     
     if rootPart then
-        -- 1. Teleport muna sa CFrame
-        rootPart.CFrame = CFrame.new(-3952.072, 594.219, 318.271)
+        -- 1. Ipakita ang unang notification para sa anti-cheat warning at countdown
+        notify("Anti Cheat", "Waiting 60s bago mag-teleport...", 5)
         
-        task.wait(0.1)
+        -- 2. Mag-antay ng 60 segundo (anti-cheat bypass timer)
+        task.wait(60)
         
-        -- 2. Hanapin ang TeleportDoor kahit nasaan man itong folder sa ilalim ng workspace
-        local teleportDoor = nil
-        for _, child in ipairs(workspace:GetChildren()) do
-            if child:FindFirstChild("TeleportDoor") then
-                teleportDoor = child.TeleportDoor
-                break
-            end
-        end
+        -- 3. Notification na tapos na ang pag-antay at magtatawid na
+        notify("Anti Cheat", "Teleporting na!", 2)
         
-        -- 3. Hanapin at i-fire ang ProximityPrompt sa loob ng PROMPTINHERE
-        if teleportDoor then
-            local promptInHere = teleportDoor:FindFirstChild("PROMPTINHERE")
-            if promptInHere then
-                for _, prompt in ipairs(promptInHere:GetChildren()) do
-                    if prompt:IsA("ProximityPrompt") then
-                        fireproximityprompt(prompt)
-                        break
-                    end
-                end
-            end
-        end
+        -- 4. Sundan ng Teleport pagkalipas ng 60s
+        rootPart.CFrame = CFrame.new(-539.382, 84.881, -88.505)
+    else
+        notify("Error", "Hindi makita ang Character/RootPart!", 3)
     end
 end)
+
 
 
 
