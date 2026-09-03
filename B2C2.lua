@@ -1698,7 +1698,7 @@ end)
 -- ====================================================================
 -- Custom Button: Auto Submit (Exact Path Fix)
 -- ====================================================================
-createCustomButton("Section 1", "Auto Submit Meat", "Teleport sa NPC, mag-antay ng 5s, at isumite ang order", function()
+createCustomButton("Section 1", "Auto Submit Meat", "Teleport sa NPC, mag-antay ng 10s, at isumite ang order", function()
     local player = game:GetService("Players").LocalPlayer
     local character = player.Character or player.CharacterAdded:Wait()
     local rootPart = character:WaitForChild("HumanoidRootPart")
@@ -1781,7 +1781,7 @@ end)
 -- ====================================================================
 -- Custom Button: Auto Find Door & Fire Prompt
 -- ====================================================================
-createCustomButton("Section 1", "Auto Open Door", "Hanapin ang EndRoom DoorFrame at awtomatikong buksan ang pinto", function()
+createCustomButton("Section 1", "Entrance Open Door", "Hanapin ang Room DoorFrame at awtomatikong buksan ang pinto", function()
     local player = game:GetService("Players").LocalPlayer
     local character = player.Character or player.CharacterAdded:Wait()
     local rootPart = character:WaitForChild("HumanoidRootPart")
@@ -1859,7 +1859,7 @@ end)
 -- ====================================================================
 -- Custom Button: Auto Open Door (Rooms / EndRoom Structure Approach)
 -- ====================================================================
-createCustomButton("Section 1", "Auto Open Door", "Direktang hanapin at buksan ang EndRoom DoorFrame", function()
+createCustomButton("Section 1", "Auto Open End Door", "Direktang hanapin at buksan ang EndRoom DoorFrame", function()
     local player = game:GetService("Players").LocalPlayer
     local character = player.Character or player.CharacterAdded:Wait()
     local rootPart = character:WaitForChild("HumanoidRootPart")
@@ -2011,10 +2011,9 @@ createCustomButton("Section 1", "Auto Run Route", "Awtomatikong mag-run o mag-te
 
     -- 1. Unang puntahan (Teleport sa unang CFrame)
     ForceFloat = false
-    rootPart.CFrame = CFrame.new(-4590, 843.64, -35.54)
-
-    -- 2. Mag-antay ng 14 seconds (tulad ng sa reference para sa tagal ng takbuhan o hintay)
-    task.wait(14)
+    
+    
+    
 
     -- 3. I-on ang float at i-tween papunta sa susunod na CFrame coordinate
     ForceFloat = true
@@ -2040,215 +2039,10 @@ end)
 
 
 
--- ====================================================================
--- Custom Button: Auto Find Lever & Fire Prompt
--- ====================================================================
-createCustomButton("Section 1", "Auto Pull Lever", "Hanapin at awtomatikong hatakin ang Lever prompt sa paligid", function()
-    local player = game:GetService("Players").LocalPlayer
-    local character = player.Character or player.CharacterAdded:Wait()
-    local rootPart = character:WaitForChild("HumanoidRootPart")
-
-    if not rootPart then return end
-
-    local targetPrompt = nil
-    local targetPart = nil
-    
-    -- 1. Mag-scan sa buong Workspace para hanapin ang prompt na may kinalaman sa "Lever" o nasa loob ng Lever folder
-    for _, desc in ipairs(workspace:GetDescendants()) do
-        if desc:IsA("ProximityPrompt") then
-            local objText = desc.ObjectText or ""
-            local actText = desc.ActionText or ""
-            local parentName = desc.Parent and desc.Parent.Name or ""
-            local grandParentName = desc.Parent and desc.Parent.Parent and desc.Parent.Parent.Name or ""
-            
-            -- Suriin kung ang prompt o ang mga magulang nito ay may kinalaman sa Lever
-            if objText:lower():match("lever") or actText:lower():match("lever") or parentName:lower() == "lever" or grandParentName:lower() == "lever" then
-                targetPrompt = desc
-                break
-            end
-        end
-    end
-
-    -- 2. Fallback: Kung wala sa prompt text, hanapin ang folder o part na may pangalang "Lever" na may prompt
-    if not targetPrompt then
-        for _, desc in ipairs(workspace:GetDescendants()) do
-            if desc.Name == "Lever" then
-                targetPrompt = desc:FindFirstChildOfClass("ProximityPrompt", true)
-                if targetPrompt then break end
-            end
-        end
-    end
-
-    -- 3. Kunin ang BasePart para sa teleportation kung nahanap ang prompt
-    if targetPrompt then
-        local currentParent = targetPrompt.Parent
-        while currentParent and not currentParent:IsA("BasePart") and currentParent ~= workspace do
-            currentParent = currentParent.Parent
-        end
-        
-        if currentParent and currentParent:IsA("BasePart") then
-            targetPart = currentParent
-        end
-
-        -- I-teleport at i-fire ang prompt
-        if targetPart then
-            rootPart.CFrame = targetPart.CFrame + Vector3.new(0, 3, 0)
-        end
-        
-        task.wait(0.4)
-        fireproximityprompt(targetPrompt)
-        
-        game:GetService("StarterGui"):SetCore("SendNotification", {
-            Title = "Success",
-            Text = "⚙️ Matagumpay na natagpuan at hinatak ang Lever!",
-            Duration = 3
-        })
-    else
-        game:GetService("StarterGui"):SetCore("SendNotification", {
-            Title = "Error",
-            Text = "Hindi makita ang Lever prompt.",
-            Duration = 3
-        })
-        warn("Hindi makita ang ProximityPrompt ng Lever sa buong Workspace.")
-    end
-end)
 
 
--- ====================================================================
--- Custom Button: Auto Cook System (Recipe Workflow & UI Detect)
--- ====================================================================
-createCustomButton("Section 2", "Auto Cook", "Awtomatikong magluto base sa nakitang Orders UI at recipe requirements", function()
-    local player = game:GetService("Players").LocalPlayer
-    local playerGui = player:WaitForChild("PlayerGui")
-    
-    -- Subaybayan kung naka-on ang Auto Cook state
-    local isAutoCookActive = true
 
-    -- Notification para sabihing nagsimula na
-    game:GetService("StarterGui"):SetCore("SendNotification", {
-        Title = "Auto Cook",
-        Text = "🍳 Nagsimula na ang Auto Cook system!",
-        Duration = 3
-    })
 
-    -- Background loop para sa auto-cooking process
-    task.spawn(function()
-        while isAutoCookActive do
-            -- 1. I-check kung visible ang Cooking UI Timer (o pwede ring tanggalin kung gusto mo laging tumakbo)
-            local cookingUI = playerGui:FindFirstChild("CookingUI")
-            local timerVisible = true
-            if cookingUI then
-                local timer = cookingUI:FindFirstChild("Timer", true)
-                if timer and timer:IsA("GuiObject") then
-                    timerVisible = timer.Visible
-                end
-            end
-
-            if not timerVisible then
-                task.wait(0.5)
-                continue
-            end
-
-            -- 2. Hanapin ang mga active Orders sa Workspace nang iwas sa 0x folders
-            local activeOrders = nil
-            local giversFolder = nil
-            local stovePrompt = nil
-            local counterPart = nil
-            local chefPrompt = nil
-
-            for _, desc in ipairs(workspace:GetDescendants()) do
-                if desc.Name == "Orders" and not activeOrders then
-                    activeOrders = desc
-                elseif desc.Name == "Givers" and not giversFolder then
-                    giversFolder = desc
-                elseif desc.Name == "Stoves" and not stovePrompt then
-                    stovePrompt = desc:FindFirstChildOfClass("ProximityPrompt", true)
-                elseif desc.Name == "WoodenCounter" and not counterPart then
-                    if desc:IsA("BasePart") then counterPart = desc end
-                elseif desc.Name == "TurnInFood" and not chefPrompt then
-                    chefPrompt = desc:FindFirstChildOfClass("ProximityPrompt", true)
-                end
-            end
-
-            if activeOrders then
-                local orderList = {}
-                for _, orderItem in ipairs(activeOrders:GetChildren()) do
-                    if orderItem.Parent then
-                        table.insert(orderList, orderItem.Name)
-                    end
-                end
-
-                if #orderList > 0 then
-                    local selectedOrder = orderList[math.random(1, #orderList)]
-                    
-                    -- Helper function para gayahin ang pagkuha at paglalagay gamit ang prompt o CFrame
-                    local function performCookAction(keyword)
-                        for _, desc in ipairs(workspace:GetDescendants()) do
-                            if desc:IsA("ProximityPrompt") then
-                                local objTxt = desc.ObjectText or ""
-                                local actTxt = desc.ActionText or ""
-                                if objTxt:lower():match(keyword:lower()) or actTxt:lower():match(keyword:lower()) then
-                                    local pPart = desc.Parent
-                                    while pPart and not pPart:IsA("BasePart") and pPart ~= workspace do
-                                        pPart = pPart.Parent
-                                    end
-                                    if pPart and pPart:IsA("BasePart") then
-                                        player.Character.HumanoidRootPart.CFrame = pPart.CFrame + Vector3.new(0, 2, 0)
-                                        task.wait(0.4)
-                                        fireproximityprompt(desc)
-                                        task.wait(0.5)
-                                        break
-                                    end
-                                end
-                            end
-                        end
-                    end
-
-                    -- Recipe Steps Execution
-                    if selectedOrder == "Ham Stew" then
-                        performCookAction("Pot")
-                        performCookAction("Ham")
-                        performCookAction("Sausage")
-                        if stovePrompt then
-                            player.Character.HumanoidRootPart.CFrame = stovePrompt.Parent.CFrame + Vector3.new(0, 2, 0)
-                            task.wait(0.4)
-                            fireproximityprompt(stovePrompt)
-                        end
-                        task.wait(10) -- Lutong oras
-                        performCookAction("Bowl")
-                        if chefPrompt then
-                            fireproximityprompt(chefPrompt)
-                        end
-                    elseif selectedOrder == "Chicken Soup" then
-                        performCookAction("Pot")
-                        performCookAction("Chicken")
-                        performCookAction("Wrapped Meat")
-                        performCookAction("Cheese")
-                        if stovePrompt then
-                            player.Character.HumanoidRootPart.CFrame = stovePrompt.Parent.CFrame + Vector3.new(0, 2, 0)
-                            task.wait(0.4)
-                            fireproximityprompt(stovePrompt)
-                        end
-                        task.wait(10)
-                        performCookAction("Bowl")
-                        if chefPrompt then
-                            fireproximityprompt(chefPrompt)
-                        end
-                    elseif selectedOrder == "Spaghetti N Eyeballs" then
-                        performCookAction("Bowl")
-                        performCookAction("Eyeball")
-                        performCookAction("Spaghetti")
-                        if chefPrompt then
-                            fireproximityprompt(chefPrompt)
-                        end
-                    end
-                end
-            end
-
-            task.wait(1.0)
-        end
-    end)
-end)
 
 createCustomButton("Section 2", "Lever End", "Teleport to Trigger Door", function()
     local character = localPlayer.Character
@@ -2267,8 +2061,205 @@ createCustomButton("Section 2", "Skip Math", "Teleport to Trigger Cook Part", fu
 end)
 
 
+-- ====================================================================
+-- Script Hub Integration: Precise Cooking Buttons
+-- ====================================================================
 
-  
+-- Helper para mahanap ang BasePart ng isang prompt para sa teleportation
+local function getPartFromPrompt(prompt)
+    local pPart = prompt.Parent
+    while pPart and not pPart:IsA("BasePart") and pPart ~= workspace do
+        pPart = pPart.Parent
+    end
+    return pPart
+end
+
+-- Helper para i-fire ang prompt gamit ang keyword
+local function triggerPrompt(keyword)
+    local player = game:GetService("Players").LocalPlayer
+    local rootPart = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+    local targetPrompt = nil
+    
+    for _, desc in ipairs(workspace:GetDescendants()) do
+        if desc:IsA("ProximityPrompt") then
+            local objText = desc.ObjectText or ""
+            local actText = desc.ActionText or ""
+            local parentName = desc.Parent and desc.Parent.Name or ""
+            
+            if objText:lower():match(keyword:lower()) or actText:lower():match(keyword:lower()) or parentName:lower():match(keyword:lower()) then
+                targetPrompt = desc
+                break
+            end
+        end
+    end
+    
+    if targetPrompt then
+        local pPart = getPartFromPrompt(targetPrompt)
+        if pPart and rootPart then
+            rootPart.CFrame = pPart.CFrame + Vector3.new(0, 2, 0)
+            task.wait(0.3)
+        end
+        fireproximityprompt(targetPrompt)
+        task.wait(0.4)
+        return true
+    end
+    return false
+end
+
+-- Helper para sa Counter prompt/part
+local function interactWithCounter()
+    local player = game:GetService("Players").LocalPlayer
+    local rootPart = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+    local counterPrompt = nil
+    
+    for _, desc in ipairs(workspace:GetDescendants()) do
+        if desc:IsA("ProximityPrompt") then
+            local pName = desc.Parent and desc.Parent.Name or ""
+            if pName:lower():match("counter") or desc.ObjectText:lower():match("counter") or desc.ActionText:lower():match("counter") then
+                counterPrompt = desc
+                break
+            end
+        end
+    end
+    
+    if counterPrompt then
+        local pPart = getPartFromPrompt(counterPrompt)
+        if pPart and rootPart then
+            rootPart.CFrame = pPart.CFrame + Vector3.new(0, 2, 0)
+            task.wait(0.3)
+        end
+        fireproximityprompt(counterPrompt)
+        task.wait(0.4)
+    end
+end
+
+-- Helper para sa Stove prompt
+local function interactWithStove()
+    local player = game:GetService("Players").LocalPlayer
+    local rootPart = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+    local stovePrompt = nil
+    
+    for _, desc in ipairs(workspace:GetDescendants()) do
+        if desc:IsA("ProximityPrompt") then
+            local pName = desc.Parent and desc.Parent.Name or ""
+            local gpName = desc.Parent and desc.Parent.Parent and desc.Parent.Parent.Name or ""
+            if pName:lower():match("stove") or gpName:lower():match("stove") or desc.ObjectText:lower():match("stove") then
+                stovePrompt = desc
+                break
+            end
+        end
+    end
+    
+    if stovePrompt then
+        local pPart = getPartFromPrompt(stovePrompt)
+        if pPart and rootPart then
+            rootPart.CFrame = pPart.CFrame + Vector3.new(0, 2, 0)
+            task.wait(0.3)
+        end
+        fireproximityprompt(stovePrompt)
+        task.wait(0.4)
+    end
+end
+
+-- ====================================================================
+-- Custom Buttons para sa iyong Script Hub (Section 2 / Cooking)
+-- ====================================================================
+
+-- 1. Auto Cook Ham Stew
+createCustomButton("Section 2", "Auto Cook Ham Stew", "Awtomatikong lutuin ang Ham Stew gamit ang tamang counter sequence", function()
+    task.spawn(function()
+        triggerPrompt("Pot")
+        interactWithCounter()
+        
+        triggerPrompt("Sausage")
+        interactWithCounter()
+        
+        triggerPrompt("Ham")
+        interactWithCounter()
+        
+        interactWithCounter() -- Kunin sa counter
+        interactWithStove()   -- Ilagay sa stove
+        
+        task.wait(10)         -- Hintay maluto
+        
+        triggerPrompt("Bowl")
+        interactWithCounter()
+        
+        interactWithStove()   -- Kunin mula sa stove
+        interactWithCounter() -- Lagay sa counter
+        interactWithCounter() -- Kunin sa counter para i-submit
+        
+        triggerPrompt("Ushi Oni")
+    end)
+end)
+
+-- 2. Auto Cook Chicken Soup
+createCustomButton("Section 2", "Auto Cook Chicken Soup", "Awtomatikong lutuin ang Chicken Soup gamit ang tamang counter sequence", function()
+    task.spawn(function()
+        triggerPrompt("Pot")
+        interactWithCounter()
+        
+        triggerPrompt("Chicken")
+        interactWithCounter()
+        
+        triggerPrompt("Wrapped Meat")
+        interactWithCounter()
+        
+        triggerPrompt("Cheese")
+        interactWithCounter()
+        
+        interactWithCounter()
+        interactWithStove()
+        
+        task.wait(10)
+        
+        triggerPrompt("Bowl")
+        interactWithCounter()
+        
+        interactWithStove()
+        interactWithCounter()
+        interactWithCounter()
+        
+        triggerPrompt("Ushi Oni")
+    end)
+end)
+
+-- 3. Auto Prepare Eyeball and Spaghetti (Bowl -> Spaghetti -> Eyeball -> Submit)
+createCustomButton("Section 2", "Auto Prepare Eyeball & Spaghetti", "Awtomatikong ihanda ang Spaghetti N Eyeballs ayon sa tamang sunod", function()
+    task.spawn(function()
+        triggerPrompt("Bowl")
+        interactWithCounter()
+        
+        triggerPrompt("Spaghetti")
+        interactWithCounter()
+        
+        triggerPrompt("Eyeball")
+        interactWithCounter()
+        
+        interactWithCounter()
+        triggerPrompt("Ushi Oni")
+    end)
+end)
+
+createCustomButton("Section 2", "End Chase 2", "Teleport to Trigger End", function()
+    local character = localPlayer.Character
+    local rootPart = character and character:FindFirstChild("HumanoidRootPart")
+    if rootPart then
+        rootPart.CFrame = CFrame.new(-3362.965, 1205.029, -6819.904)
+    end
+end)
+
+createCustomButton("Section 2", "Skip Curse 1", "Teleport to 2nd Curse Zone Game", function()
+    local character = localPlayer.Character
+    local rootPart = character and character:FindFirstChild("HumanoidRootPart")
+    if rootPart then
+        rootPart.CFrame = CFrame.new(-4186.859, 624.788, -967.759)
+    end
+end)
+
+
+
+
 
 
 
