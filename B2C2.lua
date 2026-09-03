@@ -2114,6 +2114,162 @@ createCustomButton("Section 1", "Auto Pull Lever", "Hanapin at awtomatikong hata
 end)
 
 
+-- ====================================================================
+-- Custom Button: Auto Cook System (Recipe Workflow & UI Detect)
+-- ====================================================================
+createCustomButton("Section 2", "Auto Cook", "Awtomatikong magluto base sa nakitang Orders UI at recipe requirements", function()
+    local player = game:GetService("Players").LocalPlayer
+    local playerGui = player:WaitForChild("PlayerGui")
+    
+    -- Subaybayan kung naka-on ang Auto Cook state
+    local isAutoCookActive = true
+
+    -- Notification para sabihing nagsimula na
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "Auto Cook",
+        Text = "🍳 Nagsimula na ang Auto Cook system!",
+        Duration = 3
+    })
+
+    -- Background loop para sa auto-cooking process
+    task.spawn(function()
+        while isAutoCookActive do
+            -- 1. I-check kung visible ang Cooking UI Timer (o pwede ring tanggalin kung gusto mo laging tumakbo)
+            local cookingUI = playerGui:FindFirstChild("CookingUI")
+            local timerVisible = true
+            if cookingUI then
+                local timer = cookingUI:FindFirstChild("Timer", true)
+                if timer and timer:IsA("GuiObject") then
+                    timerVisible = timer.Visible
+                end
+            end
+
+            if not timerVisible then
+                task.wait(0.5)
+                continue
+            end
+
+            -- 2. Hanapin ang mga active Orders sa Workspace nang iwas sa 0x folders
+            local activeOrders = nil
+            local giversFolder = nil
+            local stovePrompt = nil
+            local counterPart = nil
+            local chefPrompt = nil
+
+            for _, desc in ipairs(workspace:GetDescendants()) do
+                if desc.Name == "Orders" and not activeOrders then
+                    activeOrders = desc
+                elseif desc.Name == "Givers" and not giversFolder then
+                    giversFolder = desc
+                elseif desc.Name == "Stoves" and not stovePrompt then
+                    stovePrompt = desc:FindFirstChildOfClass("ProximityPrompt", true)
+                elseif desc.Name == "WoodenCounter" and not counterPart then
+                    if desc:IsA("BasePart") then counterPart = desc end
+                elseif desc.Name == "TurnInFood" and not chefPrompt then
+                    chefPrompt = desc:FindFirstChildOfClass("ProximityPrompt", true)
+                end
+            end
+
+            if activeOrders then
+                local orderList = {}
+                for _, orderItem in ipairs(activeOrders:GetChildren()) do
+                    if orderItem.Parent then
+                        table.insert(orderList, orderItem.Name)
+                    end
+                end
+
+                if #orderList > 0 then
+                    local selectedOrder = orderList[math.random(1, #orderList)]
+                    
+                    -- Helper function para gayahin ang pagkuha at paglalagay gamit ang prompt o CFrame
+                    local function performCookAction(keyword)
+                        for _, desc in ipairs(workspace:GetDescendants()) do
+                            if desc:IsA("ProximityPrompt") then
+                                local objTxt = desc.ObjectText or ""
+                                local actTxt = desc.ActionText or ""
+                                if objTxt:lower():match(keyword:lower()) or actTxt:lower():match(keyword:lower()) then
+                                    local pPart = desc.Parent
+                                    while pPart and not pPart:IsA("BasePart") and pPart ~= workspace do
+                                        pPart = pPart.Parent
+                                    end
+                                    if pPart and pPart:IsA("BasePart") then
+                                        player.Character.HumanoidRootPart.CFrame = pPart.CFrame + Vector3.new(0, 2, 0)
+                                        task.wait(0.4)
+                                        fireproximityprompt(desc)
+                                        task.wait(0.5)
+                                        break
+                                    end
+                                end
+                            end
+                        end
+                    end
+
+                    -- Recipe Steps Execution
+                    if selectedOrder == "Ham Stew" then
+                        performCookAction("Pot")
+                        performCookAction("Ham")
+                        performCookAction("Sausage")
+                        if stovePrompt then
+                            player.Character.HumanoidRootPart.CFrame = stovePrompt.Parent.CFrame + Vector3.new(0, 2, 0)
+                            task.wait(0.4)
+                            fireproximityprompt(stovePrompt)
+                        end
+                        task.wait(10) -- Lutong oras
+                        performCookAction("Bowl")
+                        if chefPrompt then
+                            fireproximityprompt(chefPrompt)
+                        end
+                    elseif selectedOrder == "Chicken Soup" then
+                        performCookAction("Pot")
+                        performCookAction("Chicken")
+                        performCookAction("Wrapped Meat")
+                        performCookAction("Cheese")
+                        if stovePrompt then
+                            player.Character.HumanoidRootPart.CFrame = stovePrompt.Parent.CFrame + Vector3.new(0, 2, 0)
+                            task.wait(0.4)
+                            fireproximityprompt(stovePrompt)
+                        end
+                        task.wait(10)
+                        performCookAction("Bowl")
+                        if chefPrompt then
+                            fireproximityprompt(chefPrompt)
+                        end
+                    elseif selectedOrder == "Spaghetti N Eyeballs" then
+                        performCookAction("Bowl")
+                        performCookAction("Eyeball")
+                        performCookAction("Spaghetti")
+                        if chefPrompt then
+                            fireproximityprompt(chefPrompt)
+                        end
+                    end
+                end
+            end
+
+            task.wait(1.0)
+        end
+    end)
+end)
+
+createCustomButton("Section 2", "Lever End", "Teleport to Trigger Door", function()
+    local character = localPlayer.Character
+    local rootPart = character and character:FindFirstChild("HumanoidRootPart")
+    if rootPart then
+        rootPart.CFrame = CFrame.new(-10057.646, 490.684, -8.683) 
+    end
+end)
+
+createCustomButton("Section 2", "Skip Math", "Teleport to Trigger Cook Part", function()
+    local character = localPlayer.Character
+    local rootPart = character and character:FindFirstChild("HumanoidRootPart")
+    if rootPart then
+        rootPart.CFrame = CFrame.new(-2581.771, 990.561, -4918.280)
+    end
+end)
+
+
+
+  
+
 
 
 
