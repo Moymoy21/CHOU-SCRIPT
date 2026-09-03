@@ -1854,66 +1854,189 @@ createCustomButton("Section 1", "Auto Open Door", "Hanapin ang EndRoom DoorFrame
 end)
 
 
+
+
+-- ====================================================================
+-- Custom Button: Auto Open Door (Rooms / EndRoom Structure Approach)
+-- ====================================================================
+createCustomButton("Section 1", "Auto Open Door", "Direktang hanapin at buksan ang EndRoom DoorFrame", function()
+    local player = game:GetService("Players").LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local rootPart = character:WaitForChild("HumanoidRootPart")
+
+    if not rootPart then return end
+
+    local targetPrompt = nil
+    local targetPart = nil
+
+    -- 1. Hanapin ang EndRoom o Rooms folder sa buong Workspace para makuha ang DoorFrame prompt
+    for _, desc in ipairs(workspace:GetDescendants()) do
+        if desc.Name == "EndRoom" or desc.Name == "Rooms" then
+            local doorTele = desc:FindFirstChild("DoorTele", true)
+            if doorTele then
+                local doorFrame = doorTele:FindFirstChild("DoorFrame")
+                if doorFrame then
+                    targetPrompt = doorFrame:FindFirstChildOfClass("ProximityPrompt", true)
+                    if doorFrame:IsA("BasePart") then
+                        targetPart = doorFrame
+                    else
+                        targetPart = doorFrame:FindFirstChildWhichIsA("BasePart", true)
+                    end
+                end
+            end
+        end
+        if targetPrompt then break end
+    end
+
+    -- 2. Fallback: Kung hindi nahanap sa itaas, hanapin ang mismong DoorFrame sa buong Workspace
+    if not targetPrompt then
+        for _, desc in ipairs(workspace:GetDescendants()) do
+            if desc.Name == "DoorFrame" then
+                targetPrompt = desc:FindFirstChildOfClass("ProximityPrompt", true)
+                if desc:IsA("BasePart") then
+                    targetPart = desc
+                else
+                    targetPart = desc:FindFirstChildWhichIsA("BasePart", true)
+                end
+                if targetPrompt then break end
+            end
+        end
+    end
+
+    -- 3. Teleport at i-fire ang prompt kung nahanap
+    if targetPrompt then
+        if not targetPart and targetPrompt.Parent and targetPrompt.Parent:IsA("BasePart") then
+            targetPart = targetPrompt.Parent
+        end
+
+        if targetPart then
+            rootPart.CFrame = targetPart.CFrame + Vector3.new(0, 3, 0)
+        end
+
+        task.wait(0.3) -- Tamang bilis gaya ng reference
+        fireproximityprompt(targetPrompt)
+
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "Success",
+            Text = "🚪 Matagumpay na nabuksan ang EndRoom Door!",
+            Duration = 3
+        })
+    else
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "Error",
+            Text = "Hindi makita ang DoorFrame prompt.",
+            Duration = 3
+        })
+        warn("Hindi makita ang EndRoom.DoorTele.DoorFrame.ProximityPrompt")
+    end
+end)
+
+
+
+
+
 -- ====================================================================
 -- Custom Button: Teleport to WoodDebris PartBreak
 -- ====================================================================
---createCustomButton("Section 1", --"TP to WoodDebris", "Mag-teleport nang diretso sa WoodDebris PartBreak", --function()
-   -- local player = game:GetService("Players").LocalPlayer
---    local character = player.Character or player.CharacterAdded:Wait()
---    local rootPart = character:WaitForChild("HumanoidRootPart")
+createCustomButton("Section 1", "TP to WoodDebris", "Mag-teleport nang diretso sa WoodDebris PartBreak", function()
+    local player = game:GetService("Players").LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local rootPart = character:WaitForChild("HumanoidRootPart")
 
-    -- if not rootPart then return end
+    if not rootPart then return end
 
- --   local targetPart =-- nil
+    local targetPart = nil
     
-    -- 1 I-loop ang mga top folders sa Workspace para mahanap ang Build -> WoodDebris -> PartBreak
---    for _, topFolder in ipairs(workspace:GetChildren()) --do
---        for _, child-- in ipairs(topFolder:GetChildren())-- do
-    --        if child.Name == -- "Build" then
-   --             local woodDebris = child:FindFirstChild("WoodDebris")
-    --            if woodDebris then
-     --               local partBreak = woodDebris:FindFirstChild("PartBreak")
-     --               if partBreak then
-        --                if partBreak:IsA -- ("BasePart") then
-          --                  targetPart = partBreak
-          --              else
-        --                    targetPart = partBreak:FindFirstChildWhichIsA("BasePart", true)
-      --                  end
-   --                 end
-  --              end
-    --        end
- --       end
---        if targetPart -- then break end
---    end
+    -- 1. I-loop ang mga top folders sa Workspace para mahanap ang Build -> WoodDebris -> PartBreak
+    for _, topFolder in ipairs(workspace:GetChildren()) do
+        for _, child in ipairs(topFolder:GetChildren()) do
+            if child.Name == "Build" then
+                local woodDebris = child:FindFirstChild("WoodDebris")
+                if woodDebris then
+                    local partBreak = woodDebris:FindFirstChild("PartBreak")
+                    if partBreak then
+                        if partBreak:IsA("BasePart") then
+                            targetPart = partBreak
+                        else
+                            targetPart = partBreak:FindFirstChildWhichIsA("BasePart", true)
+                        end
+                    end
+                end
+            end
+        end
+        if targetPart then break end
+    end
 
     -- Fallback: Kung hindi nahanap sa itaas, hanapin ang PartBreak sa buong Workspace
---    if--  not targetPart then
---        for _, desc -- in ipairs(workspace:GetDescendants()) do
-  --          if desc.Name == -- "PartBreak" and desc:IsA("BasePart") then
-      --          targetPart = desc
-    --            break
---            end
---       end
---    end
+    if not targetPart then
+        for _, desc in ipairs(workspace:GetDescendants()) do
+            if desc.Name == "PartBreak" and desc:IsA("BasePart") then
+                targetPart = desc
+                break
+            end
+        end
+    end
 
     -- 2. I-teleport ang player kung nahanap ang part
---    if targetPart then
---        rootPart.CFrame = targetPart.CFrame + Vector3.new(0, 3, 0)
+    if targetPart then
+        rootPart.CFrame = targetPart.CFrame + Vector3.new(0, 3, 0)
         
-  --      game:GetService("StarterGui"):SetCore("SendNotification", {
---            Title = "Success",
-  --          Text = "🪵 Matagumpay na na-teleport sa WoodDebris PartBreak!",
-  --          Duration = 3
---        })
-  --  else
---        game:GetService("StarterGui"):SetCore("SendNotification", {
-   --         Title = "Error",
-   --         Text = "Hindi makita ang PartBreak sa WoodDebris.",
- --           Duration = 3
---        })
---        warn("Hindi makita ang PartBreak sa Build.WoodDebris.PartBreak")
---    end
--- end)
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "Success",
+            Text = "🪵 Matagumpay na na-teleport sa WoodDebris PartBreak!",
+            Duration = 3
+        })
+    else
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "Error",
+            Text = "Hindi makita ang PartBreak sa WoodDebris.",
+            Duration = 3
+        })
+        warn("Hindi makita ang PartBreak sa Build.WoodDebris.PartBreak")
+    end
+end)
+
+-- ====================================================================
+-- Custom Button: Auto Run / Route (Tween & ForceFloat Approach)
+-- ====================================================================
+createCustomButton("Section 1", "Auto Run Route", "Awtomatikong mag-run o mag-teleport sa mga takdang lokasyon na may pathing", function()
+    local player = game:GetService("Players").LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local rootPart = character:WaitForChild("HumanoidRootPart")
+
+    if not rootPart then return end
+
+    -- Opsyonal na variable para sa float/noclip control kung ginagamit sa script hub mo
+    local ForceFloat = false
+
+    -- 1. Unang puntahan (Teleport sa unang CFrame)
+    ForceFloat = false
+    rootPart.CFrame = CFrame.new(-4590, 843.64, -35.54)
+
+    -- 2. Mag-antay ng 14 seconds (tulad ng sa reference para sa tagal ng takbuhan o hintay)
+    task.wait(14)
+
+    -- 3. I-on ang float at i-tween papunta sa susunod na CFrame coordinate
+    ForceFloat = true
+    task.spawn(function()
+        -- Kung ang script hub mo ay may sariling Tween function, magagamit ito nang direkta.
+        -- Pero kung wala, gagamitin natin ang TweenService para sa smooth movement:
+        local TweenService = game:GetService("TweenService")
+        local tweenInfo = TweenInfo.new(3, Enum.EasingStyle.Linear) -- Ayusin ang bilis kung kinakailangan
+        local tween = TweenService:Create(rootPart, tweenInfo, {CFrame = CFrame.new(-5364, 682.12, 29.63)})
+        tween:Play()
+    end)
+
+    -- 4. Mag-antay ng 2 segundo bago tapusin o i-reset ang ForceFloat
+    task.wait(2)
+    ForceFloat = "None"
+
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "Success",
+        Text = "🏃 Matagumpay na naisagawa ang Auto Run route!",
+        Duration = 3
+    })
+end)
 
 
 
