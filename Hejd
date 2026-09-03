@@ -2250,11 +2250,11 @@ createCustomButton("Section 2", "Full Car Fix Workflow", "Isang click para tapus
 end)
 
 
--- AUTO ANSWER (Exact Entire Match & Chat Only)
+-- TRIVIA AUTO-CHAT (CreateToggle Version with Perfect Hiachi / Shizu / Megumi Fix)
 
 local ToggleTrivia = false
 
-createToggle("Section 2", "Trivia Auto-Answer", "Automatically Send Correct Answer to Chat.", function(state)
+createToggle("Section 2", "Trivia Auto-Answer", "Automatically Send Correct Answer to Chat instantly.", function(state)
     ToggleTrivia = state
     
     local starterGui = game:GetService("StarterGui")
@@ -2305,20 +2305,7 @@ createToggle("Section 2", "Trivia Auto-Answer", "Automatically Send Correct Answ
 
         local triviaEvent = triviaPath.Signal
 
-        -- [[ EXACT TARGET KEYWORDS LIST ]]
-        -- Nakasulat na sa lowercase para direktang mag-match sa mga choices
-        local targetKeywords = {
-            "cherry blossom",
-            "torii gate",
-            "hiachi masashige",
-            "evil god",
-            "kiiroibara cult",
-            "a komainu",
-            "enzukai",
-            "a brush"
-        }
-
-        sendNotification("Trivia Status", "🟢 Auto-Chat ENABLED", 3)
+        sendNotification("Trivia Status", "🟢 Instant Auto-Chat ENABLED", 3)
         print("📡 Trivia Listener Active! Waiting for questions...")
 
         _G.TriviaListenerConn = triviaEvent.OnClientEvent:Connect(function(param1, questionText, choices, param4)
@@ -2330,43 +2317,69 @@ createToggle("Section 2", "Trivia Auto-Answer", "Automatically Send Correct Answ
             local chosenIndex = nil
             local detectedAnswerName = ""
             
-            -- [[ EXACT ENTIRE STRING MATCH LOGIC ]]
+            -- [[ SMARTER MATCHING LOGIC PARA IWAS SABIT ]]
             for index, choiceValue in ipairs(choices) do
                 local cleanChoice = string.lower(tostring(choiceValue))
-                for _, keyword in ipairs(targetKeywords) do
-                    -- Kailangan eksaktong magkapareho ang buong salita/parirala
-                    if cleanChoice == keyword then
+                
+                -- 1. Para kay Hiachi Masashige (May "hiachi" at "masashige", pero bawal ang "shizu" o "megumi")
+                if string.find(cleanChoice, "hiachi") and string.find(cleanChoice, "masashige") then
+                    if not string.find(cleanChoice, "shizu") and not string.find(cleanChoice, "megumi") then
+                        chosenIndex = index
+                        detectedAnswerName = choiceValue
+                        break
+                    end
+                
+                -- 2. Para sa "Me" (Strict exact match)
+                elseif cleanChoice == "me" then
+                    chosenIndex = index
+                    detectedAnswerName = choiceValue
+                    break
+                    
+                -- 3. Para sa ibang choices
+                else
+                    local targetKeywords = {
+                        "cherry blossom",
+                        "torii gate",
+                        "evil god",
+                        "kiiroibara cult",
+                        "a komainu",
+                        "enzukai",
+                        "a brush"
+                    }
+                    
+                    local isMatched = false
+                    for _, kw in ipairs(targetKeywords) do
+                        if cleanChoice == kw then
+                            isMatched = true
+                            break
+                        end
+                    end
+                    
+                    if isMatched then
                         chosenIndex = index
                         detectedAnswerName = choiceValue
                         break
                     end
                 end
-                if chosenIndex then break end
             end
             
-            if not chosenIndex then
-                chosenIndex = 1
-                detectedAnswerName = tostring(choices[1]) or "Choice #1"
-                sendNotification("Trivia Hula", "⚠️ Walang exact match. Piliin ang Choice #1: " .. detectedAnswerName, 3)
-            else
-                sendNotification("Trivia Match", "🎯 EXACT MATCH: " .. detectedAnswerName .. " (Index #" .. chosenIndex .. ")", 2)
-            end
-            
-            task.wait(2.0) 
-            
+            -- Kung walang nahanap na tugma, huwag mag-chat para iwas spam/maling sagot
+            if not chosenIndex then return end
             if not ToggleTrivia then return end
             
+            -- [[ INSTANT SEND SA CHAT ]]
             local formattedChat = "Answer: " .. tostring(detectedAnswerName)
             autoChat(formattedChat)
             
-            sendNotification("Trivia Sent", "⚡ CHAT MESSAGE SENT", 2)
-            print("⚡ Answer sent to Chat for: " .. detectedAnswerName)
+            sendNotification("Trivia Sent", "⚡ INSTANT CHAT SENT", 2)
+            print("⚡ Answer sent to Chat instantly for: " .. detectedAnswerName)
         end)
     else
         sendNotification("Trivia Status", "🔴 Auto-Chat is now DISABLED", 3)
         print("❌ Trivia Listener Deactivated.")
     end
 end)
+
 
 
 
